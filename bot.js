@@ -14,6 +14,7 @@ const {
 } = require("discord.js");
 const cron = require("node-cron");
 const moment = require("moment-timezone");
+const axios = require("axios");
 
 const client = new Client({
   intents: [
@@ -185,6 +186,50 @@ client.once("ready", async () => {
       timezone: "Asia/Dhaka",
     }
   );
+});
+
+client.on("messageCreate", async (message) => {
+  if (message.content.startsWith("/")) {
+    const command = message.content.toLowerCase();
+    const responses = {
+      "/rpm":
+        "Our PM **Marjia Ahmed Bristy** is one of the most beautiful human beings I've ever seen. Her leadership skills and kindness set an example of true greatness. According to secret Wikipedia pages, **Marjia Ahmed Bristy** is one of the sweetest and prettiest girls in the world.💜",
+      "/rp":
+        "How could I possibly put into words the one who made me? But if I must, I'd say:\n" +
+        "**Mahfuz RP** is someone who tries to make everything perfect but ends up messing it up. He isn't a special human being, just an ordinary person. Though he pretends to be an extrovert in professional life, in his personal life, there isn't a bigger introvert than him in this world.❤️‍🩹",
+    };
+
+    if (command === "/memes") {
+      const loadingMessage = await message.reply("Generating a great meme...");
+
+      let typingDots = 0;
+      const typingInterval = setInterval(async () => {
+        typingDots = (typingDots + 1) % 4;
+        const dots = ".".repeat(typingDots);
+        await loadingMessage.edit(`Generating a great meme${dots}`);
+      }, 50);
+
+      try {
+        const response = await axios.get("https://meme-api.com/gimme");
+        const meme = response.data;
+
+        clearInterval(typingInterval);
+
+        await loadingMessage.edit({
+          content: meme.title,
+          files: [meme.url],
+        });
+      } catch (error) {
+        console.error("Error fetching meme:", error);
+        clearInterval(typingInterval);
+        await loadingMessage.edit(
+          "Oops! Couldn't fetch a meme right now. Try again later."
+        );
+      }
+    } else if (responses[command]) {
+      await message.reply(responses[command]);
+    }
+  }
 });
 
 client.login(process.env.DISCORD_TOKEN);
